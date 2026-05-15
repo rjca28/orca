@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORCA CUP 2026 — Análise FPN</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #042C53;
+    --blue: #185FA5;
+    --mid: #378ADD;
+    --light: #A8CCEE;
+    --accent: #F0A500;
+    --green: #2ECC71;
+    --red: #E74C3C;
+    --bg: #050F1C;
+    --card: #0A1A2E;
+    --card2: #0D2040;
+    --border: rgba(55,138,221,0.18);
+    --text: #E8F0FA;
+    --muted: #7FA8CC;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, #071E3D 60%, #0A2A50 100%);
+    border-bottom: 2px solid var(--mid);
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(55,138,221,0.12) 0%, transparent 70%);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .header-badge {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 48px);
+    letter-spacing: 1px;
+    line-height: 1.05;
+    color: #fff;
+  }
+  header h1 span { color: var(--mid); }
+  .header-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+  .header-kpis {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .hkpi {
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    min-width: 90px;
+  }
+  .hkpi-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .hkpi-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* LAYOUT */
+  main { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+  section { margin-bottom: 40px; }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* CARDS GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .kpi-card:hover { border-color: var(--mid); }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 0 0 10px 10px;
+  }
+  .kpi-card.gold::after { background: var(--accent); }
+  .kpi-card.blue::after { background: var(--mid); }
+  .kpi-card.green::after { background: var(--green); }
+  .kpi-card.red::after { background: var(--red); }
+  .kpi-icon { font-size: 20px; margin-bottom: 8px; }
+  .kpi-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    line-height: 1;
+  }
+  .kpi-card.gold .kpi-val { color: var(--accent); }
+  .kpi-card.blue .kpi-val { color: var(--mid); }
+  .kpi-card.green .kpi-val { color: var(--green); }
+  .kpi-card.red .kpi-val { color: #F39C12; }
+  .kpi-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    line-height: 1.3;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* OBJETIVOS */
+  .obj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .obj-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .obj-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .obj-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+  .obj-detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .obj-result {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+  .obj-result.hit { background: rgba(46,204,113,0.15); color: var(--green); }
+  .obj-result.miss { background: rgba(231,76,60,0.15); color: var(--red); }
+  .obj-result.over { background: rgba(240,165,0,0.15); color: var(--accent); }
+
+  /* PÓDIOS */
+  .podium-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .podium-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    text-align: center;
+  }
+  .podium-medal { font-size: 30px; margin-bottom: 8px; }
+  .podium-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 1;
+  }
+  .podium-card.p1 .podium-count { color: #FFD700; }
+  .podium-card.p2 .podium-count { color: #C0C0C0; }
+  .podium-card.p3 .podium-count { color: #CD7F32; }
+  .podium-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+
+  /* ATLETAS TOP - tabela */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--navy); }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--light);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(55,138,221,0.06); }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  tbody tr:nth-child(even):hover { background: rgba(55,138,221,0.08); }
+  td { padding: 9px 14px; color: var(--text); }
+  td.name { font-weight: 600; color: #fff; }
+  td.event { color: var(--light); font-size: 12px; }
+  td.rank { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; text-align: center; }
+  td.rank.r1 { color: #FFD700; }
+  td.rank.r2 { color: #C0C0C0; }
+  td.rank.r3 { color: #CD7F32; }
+  td.time { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: var(--mid); }
+  td.pct { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; text-align: center; }
+  td.pct.good { color: var(--green); }
+  td.pct.ok { color: var(--accent); }
+  td.pct.bad { color: var(--red); }
+  .badge-sel {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+  .badge-jun { background: rgba(240,165,0,0.2); color: var(--accent); }
+  .badge-jov { background: rgba(55,138,221,0.2); color: var(--mid); }
+  .badge-rn { background: rgba(46,204,113,0.2); color: var(--green); font-size: 8px; }
+  .badge-par { background: rgba(168,204,238,0.15); color: var(--light); font-size: 8px; }
+
+  /* BAR CHART pura CSS */
+  .bar-section { margin-bottom: 24px; }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .bar-name {
+    width: 160px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bar-track {
+    flex: 1;
+    height: 22px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    transition: width 0.6s ease;
+  }
+  .bar-fill.gold { background: linear-gradient(90deg, #B8860B, #FFD700); }
+  .bar-fill.blue { background: linear-gradient(90deg, #185FA5, #378ADD); }
+  .bar-fill.teal { background: linear-gradient(90deg, #1A7A6E, #2ECC71); }
+  .bar-fill.orange { background: linear-gradient(90deg, #C0392B, #F39C12); }
+  .bar-count {
+    width: 36px;
+    text-align: right;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* PAR */
+  .par-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .par-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .par-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .par-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+  .par-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    color: var(--accent);
+  }
+  .par-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(55,138,221,0.08);
+    font-size: 13px;
+  }
+  .par-item:last-child { border-bottom: none; }
+  .par-athlete { font-weight: 600; color: #fff; }
+  .par-events { color: var(--muted); font-size: 12px; }
+  .par-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--mid);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .par-dot.gold { background: var(--accent); }
+
+  /* RENDIMENTO */
+  .rend-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .rend-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+  }
+  .rend-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 38px;
+    color: var(--green);
+  }
+  .rend-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+  .rend-bar-wrap { margin-top: 10px; }
+  .rend-bar-track { height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .rend-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue), var(--mid)); }
+
+  /* CONCLUSÃO */
+  .conclusao-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .conclusao-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .conclusao-card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--mid);
+    margin-bottom: 12px;
+  }
+  .point {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .point-icon { flex-shrink: 0; }
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(240,165,0,0.08), rgba(240,165,0,0.03));
+    border: 1px solid rgba(240,165,0,0.3);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .highlight-icon { font-size: 32px; flex-shrink: 0; }
+  .highlight-text strong { color: var(--accent); font-size: 15px; font-weight: 700; display: block; margin-bottom: 4px; }
+  .highlight-text span { font-size: 12px; color: var(--muted); }
+
+  /* RN spotlight */
+  .rn-box {
+    background: linear-gradient(135deg, rgba(46,204,113,0.1), rgba(46,204,113,0.03));
+    border: 1px solid rgba(46,204,113,0.4);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .rn-trophy { font-size: 40px; }
+  .rn-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .rn-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .rn-detail { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .rn-time {
+    margin-left: auto;
+    text-align: center;
+  }
+  .rn-time-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    color: var(--green);
+    line-height: 1;
+  }
+  .rn-time-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+  footer {
+    background: var(--navy);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 768px) {
+    main { padding: 20px; }
+    header { padding: 20px; }
+    .par-grid, .conclusao-grid, .rend-grid, .podium-row { grid-template-columns: 1fr; }
+    .bar-name { width: 110px; }
+    .rn-time { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="header-badge">Relatório de Competição</div>
+      <h1>ORCA CUP <span>2026</span></h1>
+      <div class="header-meta">1–3 maio 2026 · Bratislava, Eslováquia &nbsp;|&nbsp; Federação Portuguesa de Natação &nbsp;|&nbsp; 26.ª edição</div>
+    </div>
+    <div class="header-kpis">
+      <div class="hkpi"><div class="hkpi-val">22</div><div class="hkpi-lbl">Nadadores</div></div>
+      <div class="hkpi"><div class="hkpi-val">85</div><div class="hkpi-lbl">Provas</div></div>
+      <div class="hkpi"><div class="hkpi-val">47</div><div class="hkpi-lbl">Pódios</div></div>
+      <div class="hkpi"><div class="hkpi-val">1171</div><div class="hkpi-lbl">Atletas totais</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- KPIs GLOBAIS -->
+  <section>
+    <div class="section-title">Resultados Globais</div>
+    <div class="kpi-grid">
+      <div class="kpi-card gold">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-val">47</div>
+        <div class="kpi-lbl">Pódios totais</div>
+        <div class="kpi-sub">🥇 20 · 🥈 15 · 🥉 12</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">🏊</div>
+        <div class="kpi-val">60</div>
+        <div class="kpi-lbl">Presenças em finais</div>
+        <div class="kpi-sub">+ 12 séries rápidas</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-val">30</div>
+        <div class="kpi-lbl">Recordes pessoais</div>
+        <div class="kpi-sub">Elim. + finais</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-val">18</div>
+        <div class="kpi-lbl">Marcas PAR obtidas</div>
+        <div class="kpi-sub">JUN A: 5 · JOV A: 13</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-val">98,34%</div>
+        <div class="kpi-lbl">Rendimento médio RP</div>
+        <div class="kpi-sub">97,41% elim. | 99,28% finais</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon">🌍</div>
+        <div class="kpi-val">1.º</div>
+        <div class="kpi-lbl">Torneio coletivo</div>
+        <div class="kpi-sub">Vitória geral entre países</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PÓDIOS -->
+  <section>
+    <div class="section-title">Pódios por Posição</div>
+    <div class="podium-row">
+      <div class="podium-card p1">
+        <div class="podium-medal">🥇</div>
+        <div class="podium-count">20</div>
+        <div class="podium-lbl">1.º Lugares</div>
+      </div>
+      <div class="podium-card p2">
+        <div class="podium-medal">🥈</div>
+        <div class="podium-count">15</div>
+        <div class="podium-lbl">2.º Lugares</div>
+      </div>
+      <div class="podium-card p3">
+        <div class="podium-medal">🥉</div>
+        <div class="podium-count">12</div>
+        <div class="podium-lbl">3.º Lugares</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OBJETIVOS -->
+  <section>
+    <div class="section-title">Objetivos vs. Resultados</div>
+    <div class="obj-grid">
+      <div class="obj-card">
+        <div class="obj-icon">🏁</div>
+        <div>
+          <div class="obj-title">Finais</div>
+          <div class="obj-detail">Objetivo: 75% (43 finais)</div>
+          <div class="obj-detail">Resultado: 60 finais + 12 Séries Rápidas</div>
+          <div class="obj-result over">✦ SUPERADO</div>
+        </div>
+      </div>
+      <div class="obj-card">
+        <div class="obj-icon">📈</div>
+        <div>
+          <div class="obj-title">Provas &gt;99% RP</div>
+          <div class="obj-detail">Objetivo: maioria das provas</div>
+          <div class="obj-detail">Médias: 97,41% elim. | 99,28% finais</div>
+          <div class="obj-result hit">✓ ATINGIDO nas finais</div>
+        </div>
+      </div>
+      <div class="obj-card">
+        <div class="obj-icon">⚡</div>
+        <div>
+          <div class="obj-title">N.º de RPs</div>
+          <div class="obj-detail">Objetivo: 36 recordes pessoais</div>
+          <div class="obj-detail">Resultado: 30 RPs</div>
+          <div class="obj-result miss">✗ NÃO ATINGIDO (–6)</div>
+        </div>
+      </div>
+      <div class="obj-card">
+        <div class="obj-icon">🏆</div>
+        <div>
+          <div class="obj-title">Pódios</div>
+          <div class="obj-detail">Objetivo: 4 Jovens + 6 Júniores = 10</div>
+          <div class="obj-detail">Resultado: 47 pódios totais</div>
+          <div class="obj-result over">✦ LARGAMENTE SUPERADO</div>
+        </div>
+      </div>
+      <div class="obj-card">
+        <div class="obj-icon">🎽</div>
+        <div>
+          <div class="obj-title">Recordes Nacionais</div>
+          <div class="obj-detail">Objetivo: 4 recordes nacionais</div>
+          <div class="obj-detail">Resultado: 1 recorde nacional</div>
+          <div class="obj-result miss">✗ NÃO ATINGIDO (–3)</div>
+        </div>
+      </div>
+      <div class="obj-card">
+        <div class="obj-icon">📋</div>
+        <div>
+          <div class="obj-title">Marcas PAR</div>
+          <div class="obj-detail">Objetivo: qualificação para competições</div>
+          <div class="obj-detail">Resultado: 18 marcas PAR (JUN A: 5, JOV A: 13)</div>
+          <div class="obj-result over">✦ MUITO POSITIVO</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECORDE NACIONAL -->
+  <section>
+    <div class="section-title">Recorde Nacional de Categoria</div>
+    <div class="rn-box">
+      <div class="rn-trophy">🏅</div>
+      <div>
+        <div class="rn-title">Recorde Nacional · Juvenil 16 anos</div>
+        <div class="rn-name">Rodolfo Júnior Alecrim</div>
+        <div class="rn-detail">50 Mariposa · Final · CNL</div>
+      </div>
+      <div class="rn-time">
+        <div class="rn-time-val">25,31</div>
+        <div class="rn-time-lbl">Novo recorde nacional</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOP ATLETAS COM MAIS PÓDIOS -->
+  <section>
+    <div class="section-title">Atletas com mais pódios</div>
+    <div class="bar-section">
+      <!-- calculado manualmente a partir dos dados -->
+      <div class="bar-row"><span class="bar-name">Rodolfo Alecrim</span><div class="bar-track"><div class="bar-fill gold" style="width:100%">JOV · 6</div></div><span class="bar-count">6</span></div>
+      <div class="bar-row"><span class="bar-name">David Almeida</span><div class="bar-track"><div class="bar-fill gold" style="width:83%">JOV · 5</div></div><span class="bar-count">5</span></div>
+      <div class="bar-row"><span class="bar-name">Eva Coutinho</span><div class="bar-track"><div class="bar-fill blue" style="width:67%">JUN · 4</div></div><span class="bar-count">4</span></div>
+      <div class="bar-row"><span class="bar-name">Rafaela Mendes</span><div class="bar-track"><div class="bar-fill blue" style="width:67%">JUN · 4</div></div><span class="bar-count">4</span></div>
+      <div class="bar-row"><span class="bar-name">Miguel Reis Oliveira</span><div class="bar-track"><div class="bar-fill blue" style="width:67%">JUN · 4</div></div><span class="bar-count">4</span></div>
+      <div class="bar-row"><span class="bar-name">Carolina Taveira</span><div class="bar-track"><div class="bar-fill teal" style="width:67%">JOV · 4</div></div><span class="bar-count">4</span></div>
+      <div class="bar-row"><span class="bar-name">Ricardo F. Fernandes</span><div class="bar-track"><div class="bar-fill blue" style="width:50%">JUN · 3</div></div><span class="bar-count">3</span></div>
+      <div class="bar-row"><span class="bar-name">Francisco Pereira</span><div class="bar-track"><div class="bar-fill blue" style="width:50%">JUN · 3</div></div><span class="bar-count">3</span></div>
+      <div class="bar-row"><span class="bar-name">Maria Gomes Neves</span><div class="bar-track"><div class="bar-fill blue" style="width:50%">JUN · 3</div></div><span class="bar-count">3</span></div>
+      <div class="bar-row"><span class="bar-name">Leonor Cardeal</span><div class="bar-track"><div class="bar-fill teal" style="width:50%">JOV · 3</div></div><span class="bar-count">3</span></div>
+    </div>
+  </section>
+
+  <!-- TODAS AS FINAIS - TOP PERFORMANCES -->
+  <section>
+    <div class="section-title">Destaques em Finais — Primeiros e Segundos Lugares</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Atleta</th>
+            <th>Prova</th>
+            <th>Class.</th>
+            <th>Resultado</th>
+            <th>RP</th>
+            <th>% RP</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">Rodolfo Júnior Alecrim <span class="badge-sel badge-jov">JOV</span></td><td class="event">50 Mariposa</td><td class="rank r1">1.º</td><td class="time">00:25,31</td><td class="time">00:25,55</td><td class="pct good">100,95%</td><td><span class="badge-rn">RN JUV16</span></td></tr>
+          <tr><td class="name">Rodolfo Júnior Alecrim <span class="badge-sel badge-jov">JOV</span></td><td class="event">100 Livres</td><td class="rank r1">1.º</td><td class="time">00:52,40</td><td class="time">00:51,91</td><td class="pct ok">99,06%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">Rodolfo Júnior Alecrim <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Livres</td><td class="rank r1">1.º</td><td class="time">01:55,77</td><td class="time">01:56,03</td><td class="pct good">100,22%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">David Xavier Almeida <span class="badge-sel badge-jov">JOV</span></td><td class="event">50 Bruços</td><td class="rank r1">1.º</td><td class="time">00:29,85 elim.</td><td class="time">00:29,72</td><td class="pct good">99,56%</td><td>—</td></tr>
+          <tr><td class="name">David Xavier Almeida <span class="badge-sel badge-jov">JOV</span></td><td class="event">100 Bruços</td><td class="rank r1">1.º</td><td class="time">01:04,20</td><td class="time">01:05,25</td><td class="pct good">101,64%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">David Xavier Almeida <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Bruços</td><td class="rank r1">1.º</td><td class="time">02:20,80</td><td class="time">02:19,15</td><td class="pct ok">98,83%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">Eva Alexandra Coutinho <span class="badge-sel badge-jun">JUN</span></td><td class="event">50 Bruços</td><td class="rank r1">1.º</td><td class="time">00:33,19</td><td class="time">00:33,22</td><td class="pct good">100,09%</td><td>—</td></tr>
+          <tr><td class="name">Eva Alexandra Coutinho <span class="badge-sel badge-jun">JUN</span></td><td class="event">100 Livres</td><td class="rank r1">1.º</td><td class="time">00:58,63</td><td class="time">00:58,30</td><td class="pct good">99,44%</td><td>—</td></tr>
+          <tr><td class="name">Miguel Reis Oliveira <span class="badge-sel badge-jun">JUN</span></td><td class="event">100 Costas</td><td class="rank r1">1.º</td><td class="time">00:57,29</td><td class="time">00:56,02</td><td class="pct ok">97,78%</td><td>—</td></tr>
+          <tr><td class="name">Rafaela Ferreira Mendes <span class="badge-sel badge-jun">JUN</span></td><td class="event">100 Costas</td><td class="rank r1">1.º</td><td class="time">01:02,75</td><td class="time">01:03,03</td><td class="pct good">100,45%</td><td><span class="badge-par">PAR JUN A</span></td></tr>
+          <tr><td class="name">Rafaela Ferreira Mendes <span class="badge-sel badge-jun">JUN</span></td><td class="event">200 Costas</td><td class="rank r1">1.º</td><td class="time">02:15,77</td><td class="time">02:17,59</td><td class="pct good">101,34%</td><td><span class="badge-par">PAR JUN A</span></td></tr>
+          <tr><td class="name">Ricardo F. Fernandes <span class="badge-sel badge-jun">JUN</span></td><td class="event">200 Costas</td><td class="rank r1">1.º</td><td class="time">02:04,54</td><td class="time">02:04,34</td><td class="pct good">99,84%</td><td><span class="badge-par">PAR JUN A</span></td></tr>
+          <tr><td class="name">Ricardo F. Fernandes <span class="badge-sel badge-jun">JUN</span></td><td class="event">50 Costas</td><td class="rank r1">1.º elim.</td><td class="time">00:27,62</td><td class="time">00:27,69</td><td class="pct good">100,25%</td><td>—</td></tr>
+          <tr><td class="name">Leonor Nunes Cardeal <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Livres</td><td class="rank r1">1.º</td><td class="time">02:07,85</td><td class="time">02:09,31</td><td class="pct good">101,14%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">Sofia Hryhorivna Holub <span class="badge-sel badge-jov">JOV</span></td><td class="event">400 Livres</td><td class="rank r1">1.º</td><td class="time">04:28,19</td><td class="time">04:31,22</td><td class="pct good">101,13%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">Sofia Hryhorivna Holub <span class="badge-sel badge-jov">JOV</span></td><td class="event">800 Livres</td><td class="rank r1">1.º</td><td class="time">09:16,50</td><td class="time">09:31,27</td><td class="pct ok">102,65%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+          <tr><td class="name">Carolina Ratola Taveira <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Estilos</td><td class="rank r1">1.º</td><td class="time">02:26,04</td><td class="time">02:19,48</td><td class="pct ok">95,51%</td><td>—</td></tr>
+          <tr><td class="name">Camila Duarte Marcelo <span class="badge-sel badge-jov">JOV</span></td><td class="event">1500 Livres</td><td class="rank r1">1.º</td><td class="time">17:45,27</td><td class="time">17:47,70</td><td class="pct good">100,23%</td><td>—</td></tr>
+          <tr><td class="name">Renato Ferreira Mimoso <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Livres elim.</td><td class="rank r1">1.º</td><td class="time">01:56,62</td><td class="time">01:54,62</td><td class="pct ok">98,29%</td><td>—</td></tr>
+          <tr><td class="name">Francisco Pereira <span class="badge-sel badge-jun">JUN</span></td><td class="event">200 Livres</td><td class="rank r2">2.º</td><td class="time">01:54,19</td><td class="time">01:53,76</td><td class="pct good">99,62%</td><td>—</td></tr>
+          <tr><td class="name">Catarina Soares Araújo <span class="badge-sel badge-jun">JUN</span></td><td class="event">200 Estilos</td><td class="rank r2">2.º</td><td class="time">02:24,27</td><td class="time">02:20,78</td><td class="pct ok">97,58%</td><td>—</td></tr>
+          <tr><td class="name">Constança L. Azevedo <span class="badge-sel badge-jov">JOV</span></td><td class="event">200 Estilos</td><td class="rank r2">2.º</td><td class="time">02:30,25</td><td class="time">02:28,02</td><td class="pct good">98,52%</td><td>—</td></tr>
+          <tr><td class="name">Maria Gomes Neves <span class="badge-sel badge-jun">JUN</span></td><td class="event">200 Livres</td><td class="rank r1">1.º</td><td class="time">02:05,98</td><td class="time">02:06,78</td><td class="pct good">100,64%</td><td>—</td></tr>
+          <tr><td class="name">Frederica Vinhas Vieira <span class="badge-sel badge-jov">JOV</span></td><td class="event">50 Costas</td><td class="rank r2">2.º</td><td class="time">00:30,42</td><td class="time">00:30,35</td><td class="pct good">99,77%</td><td><span class="badge-par">PAR JOV A</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RENDIMENTO -->
+  <section>
+    <div class="section-title">Rendimento Médio (% do Recorde Pessoal)</div>
+    <div class="rend-grid">
+      <div class="rend-card">
+        <div class="rend-val">98,34%</div>
+        <div class="rend-lbl">Rendimento global</div>
+        <div class="rend-bar-wrap">
+          <div style="font-size:11px; color:var(--muted); text-align:left; margin-top:8px;">Objetivo: ≥99% RP</div>
+          <div class="rend-bar-track"><div class="rend-bar-fill" style="width:98.34%"></div></div>
+        </div>
+      </div>
+      <div class="rend-card">
+        <div class="rend-val" style="color:var(--mid)">97,41%</div>
+        <div class="rend-lbl">Eliminatórias</div>
+        <div class="rend-bar-wrap">
+          <div style="font-size:11px; color:var(--muted); text-align:left; margin-top:8px;">Margem de melhoria identificada</div>
+          <div class="rend-bar-track"><div class="rend-bar-fill" style="width:97.41%; background: linear-gradient(90deg, var(--navy), var(--mid))"></div></div>
+        </div>
+      </div>
+      <div class="rend-card">
+        <div class="rend-val">99,28%</div>
+        <div class="rend-lbl">Finais</div>
+        <div class="rend-bar-wrap">
+          <div style="font-size:11px; color:var(--muted); text-align:left; margin-top:8px;">Excelente resposta competitiva</div>
+          <div class="rend-bar-track"><div class="rend-bar-fill" style="width:99.28%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <div class="highlight-icon">⚠️</div>
+      <div class="highlight-text">
+        <strong>Ponto de melhoria: rendimento nas eliminatórias</strong>
+        <span>A diferença de 1,87 pp entre eliminatórias (97,41%) e finais (99,28%) indica que nas próximas competições o nível nas eliminatórias tem que ser mais elevado para garantir acesso às fases decisivas.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARCAS PAR -->
+  <section>
+    <div class="section-title">Marcas PAR Obtidas (18 no total)</div>
+    <div class="par-grid">
+      <div class="par-card">
+        <div class="par-header">
+          <div class="par-title" style="color:var(--accent)">PAR — JUN A</div>
+          <div class="par-count">5</div>
+        </div>
+        <div class="par-item"><div class="par-dot gold"></div><div><span class="par-athlete">Ricardo Fernandes</span> <span class="par-events">200 Costas</span></div></div>
+        <div class="par-item"><div class="par-dot gold"></div><div><span class="par-athlete">Rafaela Mendes</span> <span class="par-events">50, 100 e 200 Costas</span></div></div>
+        <div class="par-item"><div class="par-dot gold"></div><div><span class="par-athlete">Maria Gomes Neves</span> <span class="par-events">200 Costas</span></div></div>
+      </div>
+      <div class="par-card">
+        <div class="par-header">
+          <div class="par-title" style="color:var(--mid)">PAR — JOV A</div>
+          <div class="par-count">13</div>
+        </div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Rodolfo Alecrim</span> <span class="par-events">50, 100 e 200 Livres · 50 Mariposa</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">David Almeida</span> <span class="par-events">100 e 200 Bruços</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Sofia Holub</span> <span class="par-events">200 e 400 Livres</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Leonor Cardeal</span> <span class="par-events">200 e 400 Livres</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Carolina Taveira</span> <span class="par-events">200 Costas</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Matilde Carvalho</span> <span class="par-events">50 Costas</span></div></div>
+        <div class="par-item"><div class="par-dot"></div><div><span class="par-athlete">Frederica Vieira</span> <span class="par-events">50 Costas</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCLUSÕES -->
+  <section>
+    <div class="section-title">Síntese e Conclusões</div>
+    <div class="conclusao-grid">
+      <div class="conclusao-card">
+        <h3>✅ Pontos Fortes</h3>
+        <div class="point"><span class="point-icon">🏆</span><span>47 pódios conquistados, muito acima das expectativas (objetivo: 10)</span></div>
+        <div class="point"><span class="point-icon">🏊</span><span>60 finais — superou o objetivo de 43 (75%); presença dominante nas séries rápidas</span></div>
+        <div class="point"><span class="point-icon">🌍</span><span>Vitória coletiva do torneio entre todos os países participantes</span></div>
+        <div class="point"><span class="point-icon">📋</span><span>18 marcas PAR obtidas (JUN A: 5 · JOV A: 13) — validação do trabalho de preparação</span></div>
+        <div class="point"><span class="point-icon">🎖️</span><span>1 recorde nacional — Rodolfo Alecrim · 50 Mariposa · Juv 16 anos (25,31)</span></div>
+        <div class="point"><span class="point-icon">📈</span><span>Rendimento global de 98,34% do RP, com destaque para 99,28% nas finais</span></div>
+        <div class="point"><span class="point-icon">⭐</span><span>Rodolfo Alecrim e David Almeida como casos de excelência com 5-6 pódios cada</span></div>
+      </div>
+      <div class="conclusao-card">
+        <h3>🔧 Áreas a Melhorar</h3>
+        <div class="point"><span class="point-icon">⚠️</span><span>Rendimento nas eliminatórias (97,41%) claramente abaixo das finais — risco de não qualificação em competições mais exigentes</span></div>
+        <div class="point"><span class="point-icon">📉</span><span>RPs obtidos ficaram em 30, abaixo do objetivo de 36 — nem todos atingiram ou superaram o recorde pessoal</span></div>
+        <div class="point"><span class="point-icon">🎽</span><span>Apenas 1 recorde nacional em vez dos 4 previstos — meta não atingida</span></div>
+        <div class="point"><span class="point-icon">🏅</span><span>Algumas prestações individualmente abaixo do potencial esperado (ex: Henrique Joaquim 100L 76,81%)</span></div>
+        <div class="point"><span class="point-icon">📊</span><span>Necessidade de análise individualizada das prestações abaixo do esperado para o próximo ciclo</span></div>
+        <div class="point"><span class="point-icon">🌊</span><span>Nível de competição ligeiramente mais elevado do que o habitual — exige preparação acrescida para eventos futuros</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="highlight-box" style="margin-bottom:0; border-color:rgba(55,138,221,0.4); background:linear-gradient(135deg,rgba(55,138,221,0.08),rgba(55,138,221,0.02))">
+    <div class="highlight-icon">🇵🇹</div>
+    <div class="highlight-text">
+      <strong style="color:var(--mid)">Avaliação global: MUITO POSITIVA — acima das expectativas iniciais</strong>
+      <span>Primeira participação de Portugal na história da Orca Cup com vitória coletiva. Os resultados confirmam a eficácia do modelo de preparação FPN e reforçam a importância da participação internacional regular como instrumento de desenvolvimento sustentado.</span>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Federação Portuguesa de Natação &nbsp;|&nbsp; Relatório ORCA CUP 2026 &nbsp;|&nbsp; Bratislava, SVK &nbsp;|&nbsp; 1–3 maio 2026
+</footer>
+
+</body>
+</html>
